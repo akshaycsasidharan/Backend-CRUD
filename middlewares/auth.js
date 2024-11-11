@@ -53,3 +53,31 @@ export const isUser = async (req, res, next) => {
     });
   }
 };
+
+export const isAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).send({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.role !== "admin") {
+      return res.status(403).send({
+        success: false,
+        message: "Forbidden: You do not have access",
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
