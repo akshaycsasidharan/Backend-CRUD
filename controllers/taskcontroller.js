@@ -1,5 +1,10 @@
 import Task from "../models/taskmodel.js";
 import User from "../models/usermodel.js";
+import { io } from "../index.js";
+
+const notifyClients = (event, task) => {
+  io.emit(event, task);
+};
 
 export const createTask = async (req, res) => {
   try {
@@ -24,6 +29,9 @@ export const createTask = async (req, res) => {
     });
 
     await task.save();
+
+    notifyClients("taskCreated", task);
+
     res.status(201).json(task);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -37,6 +45,9 @@ export const updateTask = async (req, res) => {
     const task = await Task.findByIdAndUpdate(id, req.body, {
       new: true,
     });
+
+    notifyClients("taskUpdated", task);
+
     res.json(task);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -46,7 +57,10 @@ export const updateTask = async (req, res) => {
 export const deleteTask = async (req, res) => {
   const id = req.params.id;
   try {
-    await Task.findByIdAndDelete(id);
+    const task = await Task.findByIdAndDelete(id);
+
+    notifyClients("taskDeleted", task);
+
     res.json({ message: "Task deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -64,6 +78,9 @@ export const reassign = async (req, res) => {
 
     task.assignees = req.body.assignees;
     await task.save();
+
+    notifyClients("taskReassigned", task);
+
     res.status(200).json(task);
   } catch (error) {
     res.status(500).json({ message: error.message });
