@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import helmet from "helmet";
 import cors from "cors";
 import dotenv from "dotenv";
-import socketIo from "socket.io";
+import { Server as SocketIOServer } from "socket.io";
 import UserRoutes from "./routes/userroute.js";
 import TaskRoutes from "./routes/taskroute.js";
 
@@ -13,10 +13,10 @@ const app = express();
 const PORT = process.env.PORT || 8080;
 
 const server = app.listen(PORT, () => {
-  console.log(`server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
 
-const io = socketIo(server);
+const io = new SocketIOServer(server);
 
 app.use(helmet());
 app.use(cors());
@@ -37,10 +37,10 @@ app.use("/api/task", TaskRoutes);
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => {
-    console.log("successfully connected to database");
+    console.log("Successfully connected to database");
   })
   .catch((error) => {
-    console.log("connection failed", error);
+    console.log("Connection failed", error);
   });
 
 export { io };

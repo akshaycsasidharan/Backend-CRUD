@@ -1,6 +1,6 @@
 import Task from "../models/taskmodel.js";
 import User from "../models/usermodel.js";
-import { io } from "../index.js";
+import { io } from "../app.js";
 
 const notifyClients = (event, task) => {
   io.emit(event, task);
@@ -40,7 +40,6 @@ export const createTask = async (req, res) => {
 
 export const updateTask = async (req, res) => {
   const id = req.params.id;
-
   try {
     const task = await Task.findByIdAndUpdate(id, req.body, {
       new: true,
@@ -69,7 +68,6 @@ export const deleteTask = async (req, res) => {
 
 export const reassign = async (req, res) => {
   const id = req.params.id;
-
   try {
     const task = await Task.findById(id);
     if (!task) {
@@ -119,6 +117,41 @@ export const getTasks = async (req, res) => {
     const tasks = await Task.find(filter).sort(sort);
 
     res.json(tasks);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const tasksget = async (req, res) => {
+  try {
+    const { page = 1, limit = 10 } = req.query;
+
+    const { search } = req.query;
+
+    const searchQuery = search
+      ? {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { description: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+
+    const tasks = await Task.find(searchQuery)
+      .skip((page - 1) * limit)
+      .limit(Number(limit))
+      .exec();
+
+    const totalTasks = await Task.countDocuments(searchQuery);
+
+    const totalPages = Math.ceil(totalTasks / limit);
+
+    res.json({
+      tasks,
+      currentPage: Number(page),
+      totalPages,
+      totalTasks,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

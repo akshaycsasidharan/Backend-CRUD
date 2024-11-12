@@ -5,6 +5,7 @@ import {
   deleteTask,
   getTasks,
   reassign,
+  tasksget,
 } from "../controllers/taskcontroller.js";
 
 import { verifyToken, isUser, isAdmin } from "../middlewares/auth.js";
@@ -16,5 +17,6 @@ router.put("/:id", verifyToken, isUser, updateTask);
 router.delete("/:id", verifyToken, deleteTask);
 router.put("/:id", verifyToken, isAdmin, reassign);
 router.get("/", verifyToken, getTasks);
+router.get("/", verifyToken, tasksget);
 
 export default router;
